@@ -1,7 +1,9 @@
-# ESPs (draft) [![Join Regen ESP Open Science Discussion Group on Telegram](https://patrolavia.github.io/telegram-badge/chat.png)](https://t.me/joinchat/HsbSJhBNvOhSienO_x6Z1g)
+# Open Science (draft) [![Join Regen ESP Open Science Discussion Group on Telegram](https://patrolavia.github.io/telegram-badge/chat.png)](https://t.me/joinchat/HsbSJhBNvOhSienO_x6Z1g)
+TBD: About the open science group, core terminology
+
 Ecological State Protocols (ESPs) describe protocols for the Regen platform, including core protocol specifications, client APIs, and contract standards.
 
-A browsable version of all current and draft ESPs can be found on [the official ESP site](tbd).
+A browsable version of all current and draft Indicators can be found on [the official ESP site](tbd).
 
 # Contributing
 
