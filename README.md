@@ -8,6 +8,9 @@ Ecological State Protocols (ESPs) describe protocols for the Regen platform, inc
 - https://github.com/regen-network/ind-notill
 - https://github.com/regen-network/ind-soc
 
+To create a new indicator please start from the following template
+- https://github.com/regen-network/ind-template
+
 # Contributing
 TBD. Review and adapt contributing guidelines here. 
 
