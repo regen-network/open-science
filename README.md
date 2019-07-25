@@ -14,6 +14,7 @@ To create a new indicator please start from the following template
 # Contributing
 TBD. Review and adapt contributing guidelines here. 
 
+<!-- 
  1. Review [ESP-0001](ESPS/esp-0001.md).
  2. Fork the repository by clicking "Fork" in the top right.
  3. Add your ESP to your fork of the repository. There is a [template ESP here](esp-XXXX.md).
@@ -29,17 +30,19 @@ When you believe your ESP is mature and ready to progress past the draft phase, 
 
  - **For a Standards Track ESP of type Core**, ask to have your issue added to [the agenda of an upcoming Regen Open Science meeting](tbd), where it can be discussed for inclusion in a future release. If implementers agree to include it, the ESP editors will update the state of your ESP to 'Accepted'.
  - **For all other ESPs**, open a PR changing the state of your ESP to 'Final'. An editor will review your draft and ask if anyone objects to its being finalised. If the editor decides there is no rough consensus - for instance, because contributors point out significant issues with the ESP - they may close the PR and request that you fix the issues in the draft before trying again.
-
+-->
 # ESP Status Terms
+TBD - review below
 
-* **Draft** - an ESP that is undergoing rapid iteration and changes.
-* **Last Call** - an ESP that is done with its initial iteration and ready for review by a wide audience.
-* **Accepted** - a core ESP that has been in Last Call for at least 2 weeks and any technical changes that were requested have been addressed by the author. The process for Core Devs to decide whether to encode an ESP into their clients as part of a hard fork is not part of the ESP process. If such a decision is made, the ESP will move to final.
-* **Final (non-Core)** - an ESP that has been in Last Call for at least 2 weeks and any technical changes that were requested have been addressed by the author.
-* **Final (Core)** - an ESP that the Core Devs have decided to implement and release in the future . 
-* **Deferred** - an ESP that is not being considered for immediate adoption. May be reconsidered in the future for a subsequent hard fork.
+- **Draft** - an ESP that is undergoing rapid iteration and changes.
+- **Last Call** - an ESP that is done with its initial iteration and ready for review by a wide audience.
+- **Accepted** - a core ESP that has been in Last Call for at least 2 weeks and any technical changes that were requested have been addressed by the author. The process for Core Devs to decide whether to encode an ESP into their clients as part of a hard fork is not part of the ESP process. If such a decision is made, the ESP will move to final.
+- **Final (non-Core)** - an ESP that has been in Last Call for at least 2 weeks and any technical changes that were requested have been addressed by the author.
+- **Final (Core)** - an ESP that the Core Devs have decided to implement and release in the future . 
+- **Deferred** - an ESP that is not being considered for immediate adoption. May be reconsidered in the future for a subsequent hard fork.
 
 # Preferred Citation Format
+TBD - review below
 
 The canonical URL for as ESP that has achieved draft status at any point is at https://tbd.regen.network/. For example, the canonical URL for ESP-0001 is https://tbd.regen.network/ESPS/esp-0001.
 
@@ -52,8 +55,3 @@ It is possible to run the ESP validator locally:
 gem install esp_validator
 esp_validator <INPUT_FILES>
 ```
-
-# Automerger
-
-The ESP repository contains an "auto merge" feature to ease the workload for ESP editors.  If a change is made via a PR to a draft ESP, then the authors of the ESP can Github approve the change to have it auto-merged by the [esp-automerger](https://github.com/esp-automerger/automerger) bot.
-
