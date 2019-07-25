@@ -3,7 +3,7 @@ TBD: About the open science group, core terminology
 
 Ecological State Protocols (ESPs) describe protocols for the Regen platform, including core protocol specifications, client APIs, and contract standards.
 
-A browsable version of all current and draft Indicators can be found on [the official ESP site](tbd).
+<!-- A browsable version of all current and draft Indicators can be found on [the official ESP site](tbd). -->
 # Indicators (draft)
 https://github.com/regen-network/ind-notill
 https://github.com/regen-network/ind-soc
