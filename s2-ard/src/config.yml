@@ -1,0 +1,132 @@
+# Config file for Wilmot Cattle Project
+# Image Dates: May 2019
+# Image Type: S2A-L2A
+
+batch-settings:
+  "mosaic" : true
+  "average-images" : true
+  "mosaic-in-a" : true
+
+mosaic-settings:
+  # images to mosaic in order - images are stacked w/last image on top
+  mosaic-order:
+    1: "S2A_MSIL2A_20190505T000241_N0211_R030_T56JMM_20190505T021647.SAFE"
+    2: "S2A_MSIL2A_20190511T235251_N0212_R130_T56JMM_20190512T020604.SAFE"
+  # in the case not all resolutions are the same
+  # method for resampling bands during a mosaic (default is nearest)
+  "resampling-method" : "nearest"
+
+image-list:
+  image-1:
+    # name of the tile
+    "tile-name" : "S2B_MSIL2A_20190506T235259_N0212_R130_T56JMM_20190522T085952.SAFE"
+
+    # defining the ard operations
+    ard-settings:
+      "atm-corr" : false
+      "cloud-mask" : false
+      "stack" : true
+      "calibrate" : false
+      "clip" : false
+      "derived-index" : true
+      "include-in-mosaic" : false
+      "include-in-average" : true
+
+    # pixel values in mask to keep (clear pixels)
+    cloud-mask-settings:
+      #"sen2cor-scl-codes" : [4, 5]
+      #"fmask-codes" : [1]
+
+    output-image-settings:
+      # bands to stack
+      "bands" : ["B11", "B08", "B04", "B03", "B02"]
+      # derived indices to calculate
+      "vi" : ["ndvi"]
+      # target spatial reference system - epsg code i. e. 3857
+      "t-srs" : False
+      # output image resolution
+      "resolution" : 10
+      # method for resampling bands when resolution changes or reprojection
+      "resampling-method" : "cubic"
+
+    clip-settings:
+      # clip to the shapefile extent rather than the polygons
+      "extent" : true
+      # buffer in meters
+      "buffer" : ~
+
+  image-2:
+    # name of the tile
+    "tile-name" : "S2A_MSIL2A_20190505T000241_N0211_R030_T56JMM_20190505T021647.SAFE"
+
+    # defining the ard operations
+    ard-settings:
+      "atm-corr" : false
+      "cloud-mask" : true
+      "stack" : true
+      "calibrate" : false
+      "clip" : false
+      "derived-index" : true
+      "include-in-mosaic" : true
+      "include-in-average" : true
+
+    # pixel values in mask to keep (clear pixels)
+    cloud-mask-settings:
+      #"sen2cor-scl-codes" : [4, 5]
+      "fmask-codes" : [1]
+
+    output-image-settings:
+      # bands to stack
+      "bands" : ["B11", "B08", "B04", "B03", "B02"]
+      # derived indices to calculate
+      "vi" : ["ndvi"]
+      # target spatial reference system - epsg code i. e. 3857
+      "t-srs" : False
+      # output image resolution
+      "resolution" : 10
+      # method for resampling bands when resolution changes or reprojection
+      "resampling-method" : "cubic"
+
+    clip-settings:
+      # clip to the shapefile extent rather than the polygons
+      "extent" : true
+      # buffer in meters
+      "buffer" : ~
+
+  image-3:
+    # name of the tile
+    "tile-name" : "S2A_MSIL2A_20190511T235251_N0212_R130_T56JMM_20190512T020604.SAFE"
+
+    # defining the ard operations
+    ard-settings:
+      "atm-corr" : false
+      "cloud-mask" : true
+      "stack" : true
+      "calibrate" : false
+      "clip" : false
+      "derived-index" : true
+      "include-in-mosaic" : true
+      "include-in-average" : true
+
+    # pixel values in mask to keep (clear pixels)
+    cloud-mask-settings:
+      #"sen2cor-scl-codes" : [4, 5]
+      "fmask-codes" : [1]
+
+    output-image-settings:
+      # bands to stack
+      "bands" : ["B11", "B08", "B04", "B03", "B02"]
+      # derived indices to calculate
+      "vi" : ["ndvi"]
+      # target spatial reference system - epsg code i. e. 3857
+      "t-srs" : False
+      # output image resolution
+      "resolution" : 10
+      # method for resampling bands when resolution changes or reprojection
+      "resampling-method" : "cubic"
+
+    clip-settings:
+      # clip to the shapefile extent rather than the polygons
+      "extent" : true
+      # buffer in meters
+      "buffer" : ~
