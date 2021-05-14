@@ -29,7 +29,7 @@ if __name__ == "__main__":
             "fiona",
             "geopandas",
             "matplotlib",
-            "numpy"
+            "numpy",
             "shapely",
             "rasterstats",
             "scikit-learn",
