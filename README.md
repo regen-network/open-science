@@ -14,7 +14,7 @@ To create a new indicator please start from the following template
 # Contributing
 TBD. Review and adapt contributing guidelines here. 
 
-<!-- 
+
  1. Review [ESP-0001](ESPS/esp-0001.md).
  2. Fork the repository by clicking "Fork" in the top right.
  3. Add your ESP to your fork of the repository. There is a [template ESP here](esp-XXXX.md).
@@ -30,7 +30,7 @@ When you believe your ESP is mature and ready to progress past the draft phase, 
 
  - **For a Standards Track ESP of type Core**, ask to have your issue added to [the agenda of an upcoming Regen Open Science meeting](tbd), where it can be discussed for inclusion in a future release. If implementers agree to include it, the ESP editors will update the state of your ESP to 'Accepted'.
  - **For all other ESPs**, open a PR changing the state of your ESP to 'Final'. An editor will review your draft and ask if anyone objects to its being finalised. If the editor decides there is no rough consensus - for instance, because contributors point out significant issues with the ESP - they may close the PR and request that you fix the issues in the draft before trying again.
--->
+
 # ESP Status Terms
 TBD - review below
 
