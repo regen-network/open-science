@@ -15,7 +15,7 @@ class SampleRaster(object):
         self.raster_list = image_list
 
         # read in sampling point file
-        self.sample_locations = gpd.read_file(sample_locations)
+        self.sample_locations = sample_locations
         self.sample_locations['key'] = self.sample_locations.index
         self.sample_locations = self.sample_locations.dropna()
 
