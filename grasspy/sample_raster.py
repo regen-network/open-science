@@ -73,7 +73,7 @@ class SampleRaster(object):
 
         for raster in self.raster_list:
             # get raster metadata
-            print('\tProcessing Raster: %s' % os.path.split(raster['name'])[1])
+            #print('\tProcessing Raster: %s' % os.path.split(raster['name'])[1])
             raster_meta = self.get_raster_meta(raster['name'])
             band_count = raster_meta['count']
             band_names = raster['band_list']
