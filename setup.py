@@ -26,7 +26,7 @@ if __name__ == "__main__":
         packages=["grasspy"],
         install_requires=[
             "confuse",
-            "geopandas=0.9.0",
+            "geopandas>=0.9.0",
             "numpy",
             "shapely",
             "rasterstats",
