@@ -164,7 +164,6 @@ for iteration, key in enumerate(pointsDFs):
         else:
             y = points[[SOC]]
         # Set up for leave one out processig
-        loo = LeaveOneOut()
         # Set up for linear regression model
         regr = linear_model.LinearRegression()
         # Execute exhaustive feature selection algorithm
