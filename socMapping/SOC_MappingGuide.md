@@ -65,9 +65,10 @@ To set up a Python environment and required libraries for running the
 scripts I suggest you follow the instructions on the geemap website:
 <https://geemap.org/>. Following the instructions on the "Installation"
 page provide guidance on setting up a Python environment to run geemap.
-Qiusheng Wu also has several dozen videos about different aspects of
-geemap and his first tutorial is an excellent supplement to the written
-instructions for setting up geemap:
+Please note that at the time of writing the instructions require 
+installing python 3.9. Qiusheng Wu also has several dozen videos about 
+different aspects of geemap and his first tutorial is an excellent 
+supplement to the written instructions for setting up geemap:
 <https://www.youtube.com/watch?v=h0pz3S6Tvx0&t=31s>.
 
 Depending on which method you use to install Python and geemap you will
@@ -76,6 +77,15 @@ Notebook scripts you might get an error "No module named" at the
 beginning of the script. If that happen you will need to install that
 Python module (library). You can use "pip install" as noted in the
 geemap "Installation" instructions to install missing python modules.
+
+## Edit soil sample Shapefile before running the scripts
+
+Before running the scripts you will need to create a point Shapefile with 
+all of the soil samples and the attribute information must contain the 
+following fields;  soil organic carbon percent, bulk density, and a point 
+label. These should be the only fields in the attribute table. If the 
+original attribute table has more than these three fields the other 
+attributes should be deleted.
 
 ## Running the scripts
 
@@ -157,7 +167,7 @@ can be input into the StockSOC_ProcessPoints.ipynb script.
 
 ## Understanding the StockSOC_ProcessPoints.ipynb script
 
-This script is used to process data output form the
+This script is used to process data output from the
 "StockSOC_ExtractPoints" script. For each date where point data could be
 extracted from Sentinel imagery this script will determine the features
 (variables) that produce a linear regression with the best R2 value. You
@@ -200,12 +210,52 @@ time, to find the set of variables that gives the lowest R^2^ value
 using the exhaustive feature selection algorithm. Predictions from the
 model with the best fit based on R^2^ are then selected to calculate the
 following accuracy metrics using leave-one-out cross validation: R^2^,
-Adjusted R^2^, RMSE, and normalized RMSE. The results for each date are
-output while the script runs in the Jupyter Notebook along with a
-message indication how many images remain to be processed. At the end of
-the script the results from each date are output as a CSV file. The CSV
-file can then be examined to see which date and which set of variables
-provide the highest accuracy SOC map.
+Adjusted R^2^, RMSE, and normalized RMSE. Also output is information 
+about the best fitting regression including the features (bands) used, 
+intercept, and regression coefficients. The results for each date are 
+output while the script runs in the Jupyter Notebook along with a 
+message indication how many images remain to be processed. At the end 
+of the script the results from each date are output as a CSV file. The 
+CSV file can then be examined to see which date and which set of variables 
+provide the highest accuracy SOC map. 
+
+## Creating prediction image using stockSOC_PredictImage.ipynb
+To create a SOC% or stock prediction image you need to select the image date 
+from the table output when running the StockSOC_ProcessPoints.ipynb script. 
+In most cases that will be the date that had the lowest RMSE. At present, 
+the number regression coefficients must be between 2 and 4. If a higher 
+dimensional regression is required the script can be easily edited to 
+accommodate that. 
+
+To run the “stockSOC_PredictImage” script you need to enter the date of 
+the Sentinel-2 image that you want to process. The resolution and cloud 
+screening variables are the same as those described above for the 
+“StockSOC_ExtractPoints” script. In the next code block enter the path 
+and filename for the ESRI Shapefiles. with the project boundary polygon 
+and the path and filename for the output GeoTIFF image. In the next code 
+block you will enter the following data that can be copied from the table 
+output from the “StockSOC_ProcessPoints” script: features (bands), 
+intercept, and regression coefficients.  The  intercept, and regression 
+coefficients variable must be entered as an array with commas separating 
+each value. 
+
+When you run the script it can take several seconds to output the image. 
+When the script is running you can see the prediction equation that is 
+being used to confirm the correct regression coefficients are being used. 
+Before the output image is created the predicted image is displayed with 
+higher values of SOC or stock appearing green and lower values appearing 
+red. A false color image is also displayed so you can verify that the 
+area of interest (noted with a shaded polygon) is free of clouds with 
+appear as cyan colored blobs. The output image should appear in the path 
+specified near the top of the script. The image is a single-band 16-bit 
+integer image with SOC or stock values multiplied by 1000. The conversion 
+to integer was done to reduce the image size and therefore allow a larger 
+area to be processed. Google Earth Engine imposes strict output image 
+size constraints so it is possible that large areas will not be output. 
+If that happens it will be necessary to subset the area being processed 
+by cutting the boundary file into multiple polygons and running each 
+polygon separately.  The resulting output images can then be mosaicked 
+to view the full study area.
 
 ## Citation information
 
@@ -215,5 +265,5 @@ information:
 Horning, N. 2022. User Guide - Using Google Earth Engine to Predict Soil
 Organic Carbon using Soil Sample Data & Sentinel-2 Imagery. Regen
 Network Development Inc. Available from
-https://github.com/regen-network/open-science/XXXXXXXXX. (accessed on
+https://github.com/regen-network/open-science/socMapping. (accessed on
 the date).
