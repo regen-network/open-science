@@ -4,10 +4,12 @@
 # In[1]:
 
 
-# This script is used to predict SOC% or stock to create an output image based on linear 
-# regression model coefficients calculated from the previous (StockSOC_ProcessPoints) script. 
-# The output will be a 16-bit integer GeoTIFF image with pixel units of either SOC 
-# stock/hectare or SOC%/hectare. 
+# This script is used to extract Sentinel image data and other layers for a set of 
+# soil sample point locations. The DN values for each of the image bands and other 
+# layers is output as a dictionary of tabular data that can be processed using the 
+# "StockSOC_ProcessPoints" script. Input files are ESRI Shapefiles with the project 
+# boundary polygon and the soil sample points locations.A Python pickle file is 
+# exported to be input into the "StockSOC_ProcessPoints" script.
 
 # This script was written by Ned Horning [ned.horning@regen.network]
 
@@ -36,10 +38,14 @@ ee.Initialize()
 # In[3]:
 
 
-### Enter Sentinel image date as numbers for year, month, day ###
-date = ee.Date.fromYMD(2021, 11, 11) # This is the date of the image you want to process  
+### Enter start and end date as numbers for year, month, day ###
+startDate = ee.Date.fromYMD(2021, 1, 1)
+endDate = ee.Date.fromYMD(2021, 12, 31)
+# Enter the seasonal portion for each year in the date range to process
+startMonth = 1  
+endMonth = 12
 
-# Scale (resolution) in meters for the output image
+# Scale (resolution) in meters for the analysis
 pixScale = 20
 
 # Cloud masking parameters - for more information about the workflow and avriables see:
@@ -56,34 +62,27 @@ BUFFER = 50
 
 ### Enter input and output file paths and names ###
 boundaryShp = ""
-outImage = ""
+inPoints = ""
+outPickle = ""
 
 
 # In[5]:
 
 
-### Enter intercept, regression coefficients and image bands to use ###
-intercept = -0.0044025
-coef = [-6.76970035e-03, 6.17522235e-03, 1.19328667e+01]
-bands = ['B7', 'B8A', 'nbr2']
-
-
-# In[6]:
-
-
 # Function to get image data and apply cloud/shadow filter
-def get_s2_sr_cld_col(aoi, start_date):
+def get_s2_sr_cld_col(aoi, start_date, end_date):
     # Import and filter S2 SR.
     s2_sr_col = (ee.ImageCollection('COPERNICUS/S2_SR')
         .filterBounds(aoi)
         #.filterMetadata('MGRS_TILE', 'equals', '14SKJ')  # Use this to specify a specific tile
-        .filterDate(start_date, start_date.advance(1, 'day'))
+        .filterDate(start_date, end_date)
+        .filter(ee.Filter.calendarRange(startMonth, endMonth,'month'))
         .filter(ee.Filter.lte('CLOUDY_PIXEL_PERCENTAGE', CLOUD_FILTER)))
 
     # Import and filter s2cloudless.
     s2_cloudless_col = (ee.ImageCollection('COPERNICUS/S2_CLOUD_PROBABILITY')
         .filterBounds(aoi)
-        .filterDate(start_date, start_date.advance(1, 'day')))
+        .filterDate(start_date, end_date))
 
     # Join the filtered s2cloudless collection to the SR collection by the 'system:index' property.
     return ee.ImageCollection(ee.Join.saveFirst('s2cloudless').apply(**{
@@ -96,7 +95,7 @@ def get_s2_sr_cld_col(aoi, start_date):
     }))
 
 
-# In[7]:
+# In[6]:
 
 
 # Cloud cover function
@@ -112,7 +111,7 @@ def add_cloud_bands(img):
     return img.addBands(ee.Image([cld_prb, is_cloud]))
 
 
-# In[8]:
+# In[7]:
 
 
 def add_shadow_bands(img):
@@ -140,7 +139,7 @@ def add_shadow_bands(img):
     return img.addBands(ee.Image([dark_pixels, cld_proj, shadows]))
 
 
-# In[9]:
+# In[8]:
 
 
 def add_cld_shdw_mask(img):
@@ -161,10 +160,9 @@ def add_cld_shdw_mask(img):
 
     # Add the final cloud-shadow mask to the image.
     return img_cloud_shadow.addBands(is_cld_shdw)
-# return img.addBands(is_cld_shdw)
 
 
-# In[10]:
+# In[9]:
 
 
 def apply_cld_shdw_mask(img):
@@ -175,7 +173,7 @@ def apply_cld_shdw_mask(img):
     return img.select('B.*').updateMask(not_cld_shdw)
 
 
-# In[11]:
+# In[10]:
 
 
 # Function make the server-side feature collection accessible to the client
@@ -188,26 +186,35 @@ def getValues(fc):
     return dictarr
 
 
-# In[12]:
+# In[11]:
 
 
 # Convert input boundary Shapefile to a GEE boundary feature to constrain spatial extent
 boundary_ee = geemap.shp_to_ee(boundaryShp)
 
 
-# In[13]:
+# In[12]:
 
 
 # Get image data using temporal and spatial constraints
-s2_sr_cld_col = get_s2_sr_cld_col(boundary_ee, date)
+s2_sr_cld_col = get_s2_sr_cld_col(boundary_ee, startDate, endDate)
+
+
+# In[13]:
+
+
+# Apply cloud/shadow mask
+sentinelCollection = (s2_sr_cld_col.map(add_cld_shdw_mask)
+                             .map(apply_cld_shdw_mask))
 
 
 # In[14]:
 
 
-# Apply cloud/shadow mask and add NDVI layer
-sentinelCollection = (s2_sr_cld_col.map(add_cld_shdw_mask)
-                             .map(apply_cld_shdw_mask))
+# Create a list of dates for all images in the collection
+datesObject = sentinelCollection.aggregate_array("system:time_start")
+dateList =  datesObject.getInfo()
+dateList=[datetime.fromtimestamp(x/1000).strftime('%Y_%m_%d') for x in dateList]
 
 
 # In[15]:
@@ -220,17 +227,22 @@ sentinel_vis = {
     'gamma': [1.1],
     'bands': ['B4', 'B3', 'B2']}
 
-predViz = {'min': 0, 'max': 4, 'palette': ['FF0000', '00FF00']}
-
 
 # In[16]:
 
 
-# Dictionary to store all points
-allPoints = {}
+# Convert input sample points Shapefile to a GEE feature
+sample_locations = geemap.shp_to_ee(inPoints)
 
 
 # In[17]:
+
+
+# Dictionary to store all points
+extractedValues = {}
+
+
+# In[18]:
 
 
 # Calculate Topographic wetness index and extract points
@@ -242,139 +254,80 @@ elv = (ee.Image("MERIT/Hydro/v1_0_1")
 slope = ee.Terrain.slope(elv)
 upslopeArea = upslopeArea.multiply(1000000).rename('UpslopeArea')
 slopeRad = slope.divide(180).multiply(math.pi)
-TWI = ee.Image.log(upslopeArea.divide(slopeRad.tan())).rename('twi')
-
-
-# In[18]:
-
-
-# Read in and extract points for continuous heat-insolation load index and extract points
-chili = (ee.Image("CSP/ERGo/1_0/Global/SRTM_CHILI"))
+TWI = ee.Image.log(upslopeArea.divide(slopeRad.tan())).rename('TWI')
+extractedPointsTWI = geemap.extract_values_to_points(sample_locations, TWI, scale=pixScale)
+dictarrTWI = getValues(extractedPointsTWI)
 
 
 # In[19]:
 
 
-img = sentinelCollection.first().addBands(TWI).addBands(chili.rename('chili'))
+# Read in and extract points for continuous heat-insolation load index and extract points
+chili = (ee.Image("CSP/ERGo/1_0/Global/SRTM_CHILI"))
+extractedPointsCHILI = geemap.extract_values_to_points(sample_locations, chili, scale=pixScale)
+dictarrCHILI = getValues(extractedPointsCHILI)
 
 
 # In[20]:
 
 
-# Calculate NDVI
-ndvi = img.expression('(nir - red)/(nir + red)', {
-    'red' : img.select('B4'),
-    'nir' : img.select('B8')}).rename('ndvi')
+# Create a list of the images for processing
+images = sentinelCollection.toList(sentinelCollection.size())
 
 
 # In[21]:
 
 
-# Calculate SATVI
-satvi = img.expression('((swir1 -red)/(swir1 + red+0.5)) * 1.5 - (swir2/2)', {
-    'red' : img.select('B4'),
-    'swir1' : img.select('B11'),
-    'swir2' : img.select('B12')}).rename('satvi')
+Map=geemap.Map()
+Map.centerObject(boundary_ee, 13)
+for index in range(0, sentinelCollection.size().getInfo()-1):
+    print("Processing " + dateList[index] + ": " + str(sentinelCollection.size().getInfo()-1 - index - 1) + " images to go      ", end = "\r")
+    image = ee.Image(images.get(index))
+    extractedPoints = geemap.extract_values_to_points(sample_locations, image, scale=pixScale)
+    dictarr = getValues(extractedPoints)
+    points = gpd.GeoDataFrame(dictarr)
+    # Add the following variables to the collection of point data
+    points['stock'] = points['BD'] * points['C%']
+    points['twi'] = gpd.GeoDataFrame(dictarrTWI)['first']
+    points['chili'] = gpd.GeoDataFrame(dictarrCHILI)['first']
+    
+    # Use band 3 to select only points not covered by clouds
+    if ('B3' in points):  
+        extractedValues.update({dateList[index] : points})
+    # Add the image layer for display
+    Map.addLayer(image, sentinel_vis, dateList[index])
+
+# Add boundary to dispay images
+Map.addLayer(boundary_ee, {}, "Boundary EE")
+
+# Display the map.
+Map
 
 
 # In[22]:
 
 
-# Calculate NBR2
-nbr2 = img.expression('(swir1 -swir2)/(swir1 + swir2)', {
-    'swir1' : img.select('B11'),
-    'swir2' : img.select('B12')}).rename('nbr2')
+# Output the dictionary with all points - this will be input to the "StockSOC_ProcessPoints" Notebook
+with open(outPickle, 'wb') as handle:
+    pickle.dump(extractedValues, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
 
 # In[23]:
 
 
-# Calculate SOCI
-soci = img.expression('blue/(red * green)', {
-    'blue' : img.select('B2'),
-    'green' : img.select('B3'),
-    'red' : img.select('B4')}).rename('soci')
+# Print a list of all the image dates
+list(extractedValues.keys())
 
 
 # In[24]:
 
 
-# Calculate BSI
-bsi = img.expression('(swir1 + red) -(nir + blue) / (swir1 + red) + (nir + blue)', {
-    'blue' : img.select('B2'),
-    'red' : img.select('B4'),
-    'nir' : img.select('B8'),
-    'swir1' : img.select('B11')}).rename('bsi')
+# Print all of the points starting with the earliest date
+extractedValues
 
 
-# In[25]:
+# In[ ]:
 
 
-# Combine all bands into a single image
-finalImage = img.addBands(ndvi).addBands(satvi).addBands(nbr2).addBands(soci).addBands(bsi)
 
-
-# In[26]:
-
-
-# Select the regression prediction algoritm bases on number of coefficients
-if len(coef) == 2 :
-    exp = str(intercept) + ' + (' + str(coef[0]) + ' * b1)' + ' + (' + str(coef[1]) + ' * b2)'
-    print('Prediction equation: ' + exp)
-    predImage = finalImage.expression(exp, {
-            'b1' : finalImage.select(bands[0]),
-            'b3' : finalImage.select(bands[1])})
-elif len(coef) == 3 :
-    exp = str(intercept) + ' + (' + str(coef[0]) + ' * b1)' + ' + (' + str(coef[1]) + ' * b2)' + \
-    ' + (' + str(coef[2]) + ' * b3)'
-    print('Prediction equation: ' + exp)
-    predImage = finalImage.expression(exp, {
-            'b1' : finalImage.select(bands[0]),
-            'b2' : finalImage.select(bands[1]),
-            'b3' : finalImage.select(bands[2])})
-elif len(coef) == 4 :
-    exp = str(intercept) + ' + (' + str(coef[0]) + ' * b1)' + ' + (' + str(coef[1]) + ' * b2)' + \
-    ' + (' + str(coef[2]) + ' * b3)' + ' + (' + str(coef[3]) + ' * b4)' 
-    print('Prediction equation: ' + exp)
-    predImage = finalImage.expression(exp, {
-            'b1' : finalImage.select(bands[0]),
-            'b2' : finalImage.select(bands[1]),
-            'b3' : finalImage.select(bands[2]),
-            'b4' : finalImage.select(bands[3])})
-else:
-    print("The number of regression coeficients must be between 2 and 4")
-
-
-# In[27]:
-
-
-Map=geemap.Map()
-Map.centerObject(boundary_ee, 13)
-Map.addLayer(predImage, predViz, 'pred')
-Map.addLayer(boundary_ee, {}, "Boundary EE")
-Map
-
-
-# In[28]:
-
-
-Map=geemap.Map()
-Map.centerObject(boundary_ee, 13)
-Map.addLayer(finalImage, sentinel_vis, "image")
-Map.addLayer(boundary_ee, {}, "Boundary EE")
-Map
-
-
-# In[29]:
-
-
-# Multiply the output image by 1000 to be able to convert to integer allowing larger areas to be downloaded
-outputImage = predImage.multiply(1000).round().toInt16()
-
-
-# In[30]:
-
-
-geemap.ee_export_image(outputImage, filename=outImage, scale=pixScale, region=boundary_ee.geometry(), \
-    file_per_band=True)
 

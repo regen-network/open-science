@@ -45,8 +45,8 @@ from numpy import absolute
 
 
 ### Enter input file from "StockSOC_ExtractPoints" and output CSV file paths and names ###
-inPickle = "/home/nedhorning/RegenNetwork/Soils/Ruuts/LaEmma/GEE_Output/extractedPoints.pickle"
-outCSV = "/home/nedhorning/RegenNetwork/Soils/Ruuts/LaEmma/GEE_Output/testing.csv"
+inPickle = ""
+outCSV = ""
 
 
 # In[4]:
@@ -198,7 +198,7 @@ for iteration, key in enumerate(pointsDFs):
             y = points[[SOC]]
         
         # Get the R2 Adjusted R2, RMSE and Normalize RMSE for the variable with the best fit
-        regr = linear_model.LinearRegression()
+        #regr = linear_model.LinearRegression()
         fitTOC = regr.fit(x, y)
         R2TOC = fitTOC.score(x,y)
         Adjusted_R2 = 1 - (1-fitTOC.score(x, y))*(len(y)-1)/(len(y)-x.shape[1]-1)
