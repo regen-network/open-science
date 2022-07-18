@@ -50,20 +50,34 @@ pixScale = 20
 
 # Cloud masking parameters - for more information about the workflow and avriables see:
 # https://developers.google.com/earth-engine/tutorials/community/sentinel-2-s2cloudless
+<<<<<<< HEAD
 CLOUD_FILTER = 60
 CLOUD_PROBABILITY_THRESHOLD = 50
 NIR_DARK_THRESHOLD = 0.15
 CLOUD_PROJECTED_DISTANCE = 1
 BUFFER = 50
+=======
+cloudFilter = 60
+cloudProbabilityThreshold = 50
+nirDarkThreshold = 0.15
+cloudPProjectedDistance = 1
+buffer = 50
+>>>>>>> ffbb9198df3c04551104cc604f84033dad8da919
 
 
 # In[4]:
 
 
 ### Enter input and output file paths and names ###
+<<<<<<< HEAD
 boundaryShp = ""
 inPoints = ""
 outPickle = ""
+=======
+boundaryShp = "/home/nedhorning/RegenNetwork/Soils/Ruuts/LaEmma/LaEmmaBoundary.shp"
+inPoints = "/home/nedhorning/RegenNetwork/Soils/Ruuts/LaEmma/LaEmmaSamplePoints2021.shp"
+outPickle = "/home/nedhorning/RegenNetwork/Soils/Ruuts/LaEmma/GEE_Output/extractedPoints.pickle"
+>>>>>>> ffbb9198df3c04551104cc604f84033dad8da919
 
 
 # In[5]:
@@ -77,7 +91,11 @@ def get_s2_sr_cld_col(aoi, start_date, end_date):
         #.filterMetadata('MGRS_TILE', 'equals', '14SKJ')  # Use this to specify a specific tile
         .filterDate(start_date, end_date)
         .filter(ee.Filter.calendarRange(startMonth, endMonth,'month'))
+<<<<<<< HEAD
         .filter(ee.Filter.lte('CLOUDY_PIXEL_PERCENTAGE', CLOUD_FILTER)))
+=======
+        .filter(ee.Filter.lte('CLOUDY_PIXEL_PERCENTAGE', cloudFilter)))
+>>>>>>> ffbb9198df3c04551104cc604f84033dad8da919
 
     # Import and filter s2cloudless.
     s2_cloudless_col = (ee.ImageCollection('COPERNICUS/S2_CLOUD_PROBABILITY')
@@ -105,7 +123,11 @@ def add_cloud_bands(img):
     cld_prb = ee.Image(img.get('s2cloudless')).select('probability')
 
     # Condition s2cloudless by the probability threshold value.
+<<<<<<< HEAD
     is_cloud = cld_prb.gt(CLOUD_PROBABILITY_THRESHOLD).rename('clouds')
+=======
+    is_cloud = cld_prb.gt(cloudProbabilityThreshold).rename('clouds')
+>>>>>>> ffbb9198df3c04551104cc604f84033dad8da919
 
     # Add the cloud probability layer and cloud mask as image bands.
     return img.addBands(ee.Image([cld_prb, is_cloud]))
@@ -120,13 +142,21 @@ def add_shadow_bands(img):
 
     # Identify dark NIR pixels that are not water (potential cloud shadow pixels).
     SR_BAND_SCALE = 1e4
+<<<<<<< HEAD
     dark_pixels = img.select('B8').lt(NIR_DARK_THRESHOLD*SR_BAND_SCALE).multiply(not_water).rename('dark_pixels')
+=======
+    dark_pixels = img.select('B8').lt(nirDarkThreshold*SR_BAND_SCALE).multiply(not_water).rename('dark_pixels')
+>>>>>>> ffbb9198df3c04551104cc604f84033dad8da919
 
     # Determine the direction to project cloud shadow from clouds (assumes UTM projection).
     shadow_azimuth = ee.Number(90).subtract(ee.Number(img.get('MEAN_SOLAR_AZIMUTH_ANGLE')));
 
     # Project shadows from clouds for the distance specified by the CLD_PRJ_DIST input.
+<<<<<<< HEAD
     cld_proj = (img.select('clouds').directionalDistanceTransform(shadow_azimuth, CLOUD_PROJECTED_DISTANCE *10)
+=======
+    cld_proj = (img.select('clouds').directionalDistanceTransform(shadow_azimuth, cloudPProjectedDistance *10)
+>>>>>>> ffbb9198df3c04551104cc604f84033dad8da919
         .reproject(**{'crs': img.select(0).projection(), 'scale': 100})
         .select('distance')
         .mask()
@@ -154,12 +184,20 @@ def add_cld_shdw_mask(img):
 
     # Remove small cloud-shadow patches and dilate remaining pixels by BUFFER input.
     # 20 m scale is for speed, and assumes clouds don't require 10 m precision.
+<<<<<<< HEAD
     is_cld_shdw = (is_cld_shdw.focal_min(2).focal_max(BUFFER*2/20)
+=======
+    is_cld_shdw = (is_cld_shdw.focal_min(2).focal_max(buffer*2/20)
+>>>>>>> ffbb9198df3c04551104cc604f84033dad8da919
         .reproject(**{'crs': img.select([0]).projection(), 'scale': 20})
         .rename('cloudmask'))
 
     # Add the final cloud-shadow mask to the image.
     return img_cloud_shadow.addBands(is_cld_shdw)
+<<<<<<< HEAD
+=======
+# return img.addBands(is_cld_shdw)
+>>>>>>> ffbb9198df3c04551104cc604f84033dad8da919
 
 
 # In[9]:
@@ -203,7 +241,11 @@ s2_sr_cld_col = get_s2_sr_cld_col(boundary_ee, startDate, endDate)
 # In[13]:
 
 
+<<<<<<< HEAD
 # Apply cloud/shadow mask
+=======
+# Apply cloud/shadow mask and add NDVI layer
+>>>>>>> ffbb9198df3c04551104cc604f84033dad8da919
 sentinelCollection = (s2_sr_cld_col.map(add_cld_shdw_mask)
                              .map(apply_cld_shdw_mask))
 
@@ -232,14 +274,22 @@ sentinel_vis = {
 
 
 # Convert input sample points Shapefile to a GEE feature
+<<<<<<< HEAD
 sample_locations = geemap.shp_to_ee(inPoints)
+=======
+points_ee = geemap.shp_to_ee(inPoints)
+>>>>>>> ffbb9198df3c04551104cc604f84033dad8da919
 
 
 # In[17]:
 
 
 # Dictionary to store all points
+<<<<<<< HEAD
 extractedValues = {}
+=======
+allPoints = {}
+>>>>>>> ffbb9198df3c04551104cc604f84033dad8da919
 
 
 # In[18]:
@@ -255,7 +305,11 @@ slope = ee.Terrain.slope(elv)
 upslopeArea = upslopeArea.multiply(1000000).rename('UpslopeArea')
 slopeRad = slope.divide(180).multiply(math.pi)
 TWI = ee.Image.log(upslopeArea.divide(slopeRad.tan())).rename('TWI')
+<<<<<<< HEAD
 extractedPointsTWI = geemap.extract_values_to_points(sample_locations, TWI, scale=pixScale)
+=======
+extractedPointsTWI = geemap.extract_values_to_points(points_ee, TWI, scale=pixScale)
+>>>>>>> ffbb9198df3c04551104cc604f84033dad8da919
 dictarrTWI = getValues(extractedPointsTWI)
 
 
@@ -264,7 +318,11 @@ dictarrTWI = getValues(extractedPointsTWI)
 
 # Read in and extract points for continuous heat-insolation load index and extract points
 chili = (ee.Image("CSP/ERGo/1_0/Global/SRTM_CHILI"))
+<<<<<<< HEAD
 extractedPointsCHILI = geemap.extract_values_to_points(sample_locations, chili, scale=pixScale)
+=======
+extractedPointsCHILI = geemap.extract_values_to_points(points_ee, chili, scale=pixScale)
+>>>>>>> ffbb9198df3c04551104cc604f84033dad8da919
 dictarrCHILI = getValues(extractedPointsCHILI)
 
 
@@ -283,7 +341,11 @@ Map.centerObject(boundary_ee, 13)
 for index in range(0, sentinelCollection.size().getInfo()-1):
     print("Processing " + dateList[index] + ": " + str(sentinelCollection.size().getInfo()-1 - index - 1) + " images to go      ", end = "\r")
     image = ee.Image(images.get(index))
+<<<<<<< HEAD
     extractedPoints = geemap.extract_values_to_points(sample_locations, image, scale=pixScale)
+=======
+    extractedPoints = geemap.extract_values_to_points(points_ee, image, scale=pixScale)
+>>>>>>> ffbb9198df3c04551104cc604f84033dad8da919
     dictarr = getValues(extractedPoints)
     points = gpd.GeoDataFrame(dictarr)
     # Add the following variables to the collection of point data
@@ -293,7 +355,11 @@ for index in range(0, sentinelCollection.size().getInfo()-1):
     
     # Use band 3 to select only points not covered by clouds
     if ('B3' in points):  
+<<<<<<< HEAD
         extractedValues.update({dateList[index] : points})
+=======
+        allPoints.update({dateList[index] : points})
+>>>>>>> ffbb9198df3c04551104cc604f84033dad8da919
     # Add the image layer for display
     Map.addLayer(image, sentinel_vis, dateList[index])
 
@@ -309,20 +375,29 @@ Map
 
 # Output the dictionary with all points - this will be input to the "StockSOC_ProcessPoints" Notebook
 with open(outPickle, 'wb') as handle:
+<<<<<<< HEAD
     pickle.dump(extractedValues, handle, protocol=pickle.HIGHEST_PROTOCOL)
+=======
+    pickle.dump(allPoints, handle, protocol=pickle.HIGHEST_PROTOCOL)
+>>>>>>> ffbb9198df3c04551104cc604f84033dad8da919
 
 
 # In[23]:
 
 
 # Print a list of all the image dates
+<<<<<<< HEAD
 list(extractedValues.keys())
+=======
+list(allPoints.keys())
+>>>>>>> ffbb9198df3c04551104cc604f84033dad8da919
 
 
 # In[24]:
 
 
 # Print all of the points starting with the earliest date
+<<<<<<< HEAD
 extractedValues
 
 
@@ -330,4 +405,7 @@ extractedValues
 
 
 
+=======
+allPoints
+>>>>>>> ffbb9198df3c04551104cc604f84033dad8da919
 
