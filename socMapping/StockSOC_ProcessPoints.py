@@ -141,8 +141,8 @@ regResults = pd.DataFrame(columns = ['Date', 'R2', 'Adjusted_R2', 'RMSE', 'BestF
 # In[15]:
 
 
-# Iterate through the dictionary of tabular one date at a time to find the set of variables
-# that gievs the lowest R2 value
+# Iterate through the dictionary one date at a time to find the set of variables
+# that gives the highest R2 value
 for iteration, key in enumerate(pointsDFs):
     points = pointsDFs[key]
     if (points['B3'].isna().sum() / len(points.index) < 0.2): # If under 20% of the values are NA (cloud masked)
@@ -178,7 +178,7 @@ for iteration, key in enumerate(pointsDFs):
         for i in efs.subsets_:
             efs.subsets_[i]['adjusted_avg_score'] = (
             adjust_r2(r2=efs.subsets_[i]['avg_score'],
-                  num_examples=x.shape[0]/10,
+                  num_examples=x.shape[0]/1.0,
                   num_features=len(efs.subsets_[i]['feature_idx']))
             )
         score = -99e10

@@ -66,6 +66,16 @@ inPoints = ""
 outPickle = ""
 
 
+# In[ ]:
+
+
+### Define the attribute labels from the input tabular data for SOC, BD, and the point name ###
+# The attribute labels are the same as the attribute names in the point location ESRI Shapefile
+SOC = 'C%'  # Attribute name for soil carbon metric 
+BD = 'BD'   # Attribute name for bulk density
+depth = 15    # Soil sample depth in cm
+
+
 # In[5]:
 
 
@@ -214,7 +224,7 @@ sentinelCollection = (s2_sr_cld_col.map(add_cld_shdw_mask)
 # Create a list of dates for all images in the collection
 datesObject = sentinelCollection.aggregate_array("system:time_start")
 dateList =  datesObject.getInfo()
-dateList=[datetime.fromtimestamp(x/1000).strftime('%Y_%m_%d') for x in dateList]
+dateList = [datetime.utcfromtimestamp(x / 1000).strftime('%Y_%m_%d') for x in dateList]
 
 
 # In[15]:
@@ -287,7 +297,7 @@ for index in range(0, sentinelCollection.size().getInfo()-1):
     dictarr = getValues(extractedPoints)
     points = gpd.GeoDataFrame(dictarr)
     # Add the following variables to the collection of point data
-    points['stock'] = points['BD'] * points['C%']
+    points['stock'] = points[BD] * points[SOC] * depth
     points['twi'] = gpd.GeoDataFrame(dictarrTWI)['first']
     points['chili'] = gpd.GeoDataFrame(dictarrCHILI)['first']
     
