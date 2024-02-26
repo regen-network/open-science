@@ -368,8 +368,8 @@ Map
 # In[29]:
 
 
-# Multiply the output image by 1000 to be able to convert to integer allowing larger areas to be downloaded
-outputImage = predImage.multiply(1000).round().toInt16()
+# Multiply the output image by 10 to be able to convert to integer allowing larger areas to be downloaded
+outputImage = predImage.multiply(10).round().toInt16()
 
 
 # In[30]:
