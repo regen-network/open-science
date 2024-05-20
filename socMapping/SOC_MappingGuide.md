@@ -17,7 +17,7 @@ map of soil organic carbon (SOC) across a landscape using soil sample
 data. The workflow is implemented in two Python scripts designed for use
 in Jupyter Notebook.
 
-The workflow consists of two steps. The first step extracts pixel data
+The workflow consists of three steps. The first step extracts pixel data
 from time series Sentinel-2 imagery and other layers that correspond
 with soil sample point locations. The second step uses the extracted
 data from the first step to find the variables that provide the best
@@ -26,8 +26,9 @@ fit are then used to calculate metrics using leave-one-out
 cross-validation (R square, Adjusted R square, RMSE, and normalized
 RMSE) to calculate accuracy of the predictions. This is done for each
 date of the time-series Sentinel-2 imagery. Output is a CSV file and
-that can be view to find the image date and specific variables that
-produce the best SOC predictions.
+that can be viewed to find the image date and specific variables that
+produce the best SOC predictions. The third step creates a predicted SOC
+image map of the study area using selected variables from step 2.
 
 The Jupyter Notebook scripts are written in Python and rely heavily on
 the geemap library maintained by Qiusheng Wu. The scripts were developed
@@ -36,6 +37,7 @@ improved upon by the community of users. The scripts are written to make
 them easy to modify and run but users are encouraged to read through and
 understand the processing workflow and provide feedback through the
 GitHub Issues feature so we can continually improve the scripts.
+
 
 ## Workflow setup
 
@@ -100,17 +102,18 @@ then to launch Jupyter Notebook:
 `jupyter notebook`
 
 Jupyter Notebook will open a web page that will allow you to navigate to
-the scripts. We will be using these two scripts:
-StockSOC_ExtractPoints.ipynb and StockSOC_ProcessPoints.ipynb. Clicking
-on a script will open it in Jupyter Notebook. Each scrip has a brief
-overview explaining what the script does and that is followed by a
-series of import statements to provide access to the different modules
-the script will need for processing. Next, there are a few blocks with
-the first line starting and ending with "\#\#\#". These are blocks where
-you can define variables for running the scripts. After editing the
-variables the entire script can be run by selecting Kernel =\> Restart &
-Run All. The script can also be run one block at a time using the "Run"
-button at the top of the Jupyter Notebook page under the menu.
+the scripts. We will be using these three scripts:
+stockSOC\_ExtractPoints.ipynb, stockSOC\_ProcessPoints.ipynb, and
+StockSOC\_PredictImage.ipynb. Clicking on a script will open it in
+Jupyter Notebook. Each scrip has a brief overview explaining what the
+script does and that is followed by a series of import statements to
+provide access to the different modules the script will need for
+processing. Next, there are a few blocks with the first line starting
+and ending with "\#\#\#". These are blocks where you can define
+variables for running the scripts. After editing the variables the
+entire script can be run by selecting Kernel =\> Restart & Run All. The
+script can also be run one block at a time using the "Run" button at the
+top of the Jupyter Notebook page under the menu.
 
 Each script has a processing message to give you an idea how the
 processing is progressing. Extracting points is typically finished in a
@@ -119,13 +122,14 @@ the maximum number of variable you permit when calculating best fit.
 
 ## Understanding the StockSOC_ExtractPoints.ipynb script
 
-This script is used to extract Sentinel image data and other layers for
-a set of soil sample point locations. The DN values for each of the
-image bands and other layers is output as a dictionary of tabular data
-that can be processed using the \"StockSOC_ProcessPoints\" script. Input
-files are two ESRI Shapefiles. One with the project boundary polygon and
-the other soil sample points locations. A Python pickle file is exported
-to be input into the \"StockSOC_ProcessPoints\" script.
+This script is used to extract Sentinel image data and other data layers
+from the Google Earth Engine image archives for a set of soil sample
+point locations. The DN values for each of the image bands and other
+layers is output as a dictionary of tabular data that can be processed
+using the \"StockSOC\_ProcessPoints\" script. Input files are two ESRI
+Shapefiles. One with the project boundary polygon and the other soil
+sample points locations. A Python pickle file is exported to be input
+into the \"StockSOC\_ProcessPoints\" script.
 
 Before running the script there are two sets of dates that need to be
 entered. The first set defines the start and end date for the Sentinel-2
@@ -163,33 +167,42 @@ bulk density, SOC, carbon stock, and point label.
 
 Tabular data for each date as well as the date of the image is stored in
 a Python Dictionary and that is exported as a Python pickle file so it
-can be input into the StockSOC_ProcessPoints.ipynb script.
+can be input into the StockSOC\_ProcessPoints.ipynb script.
 
 ## Understanding the StockSOC_ProcessPoints.ipynb script
 
 This script is used to process data output from the
-"StockSOC_ExtractPoints" script. For each date where point data could be
-extracted from Sentinel imagery this script will determine the features
-(variables) that produce a linear regression with the best R2 value. You
-can specify the minimum and maximum number of features that are tested.
-Increasing the maximum number of features to four or higher requires
-significantly more processing time. Using leave-one-out cross validation
-with the best fitting linear model, the following metrics are calculated
-and writen to a CSV file that is output at the end of the script: R
-square, Adjusted R square, RMSE, and normalized RMSE. Processing
-progress can be monitored by viewing the metrics for each date after
-that date has been processed.
+"StockSOC\_ExtractPoints" script. For each date where point data could
+be extracted from Sentinel imagery this script will determine the
+features (variables) that produce a linear regression with the best R2
+value. You can specify the minimum and maximum number of features that
+are tested. Increasing the maximum number of features to four or higher
+requires significantly more processing time. Using leave-one-out cross
+validation with the best fitting linear model, the following metrics are
+calculated and writen to a CSV file that is output at the end of the
+script: R square, Adjusted R square, RMSE, and normalized RMSE.
+Processing progress can be monitored by viewing the metrics for each
+date after that date has been processed.
 
-There are three sets of variables that need to be defnied to run the
-script. The first set defines the input pickle file exported by the
-StockSOC_ExtractPoints.ipynb script and the output CSV file. The next
+There are five sets (blocks) of variables that need to be defined to run
+the script. The first set defines the input pickle file exported by the
+StockSOC\_ExtractPoints.ipynb script and the output CSV file. The next
 set identifies the attribute labels from the input tabular data for soil
 organic carbon, bulk density, and the point name. The attribute labels
 are identical to the attribute names in the point location ESRI
-Shapefile. The last set of variables is used to define the minimum and
+Shapefile. The third set of variables is used to define the minimum and
 maximum number of features to use in the exhaustive feature selection
 algorithm. Adding more features will dramatically increase processing
-time.
+time. In the fourth variable block you specify if you are going to
+calculate carbon stock in the script ("processStock = true") or directly
+process SOC % ("processStock = false"). If you have carbon stock values
+as an attribute then you would use "processStock = false" and enter that
+attribute name for the "SOC" variable in the second set of variables
+above. The fifth and last variable block lets you set the maximum number
+of points from a specific image that can be covered by clouds or
+shadows. If this threshold is exceeded then the image will not be
+processed due to an excessive number of sample points that were covered
+by clouds on that date.
 
 The script calculates several indices that are not included in the the
 tabular data exported from the StockSOC_ExtractPoints.ipynb script.
@@ -220,24 +233,36 @@ CSV file can then be examined to see which date and which set of variables
 provide the highest accuracy SOC map. 
 
 ## Creating prediction image using stockSOC_PredictImage.ipynb
-To create a SOC% or stock prediction image you need to select the image date 
-from the table output when running the StockSOC_ProcessPoints.ipynb script. 
-In most cases that will be the date that had the lowest RMSE. At present, 
-the number regression coefficients must be between 2 and 4. If a higher 
-dimensional regression is required the script can be easily edited to 
-accommodate that. 
+To create a SOC% or stock prediction image you need to select the image
+date from the table output when running the
+StockSOC\_ProcessPoints.ipynb script. In most cases that will be the
+date that had the lowest RMSE. At present, the number regression
+coefficients must be between 2 and 4. If a higher dimensional regression
+is required the script can be easily edited to accommodate that. 
 
-To run the “stockSOC_PredictImage” script you need to enter the date of 
-the Sentinel-2 image that you want to process. The resolution and cloud 
-screening variables are the same as those described above for the 
-“StockSOC_ExtractPoints” script. In the next code block enter the path 
-and filename for the ESRI Shapefiles. with the project boundary polygon 
-and the path and filename for the output GeoTIFF image. In the next code 
-block you will enter the following data that can be copied from the table 
-output from the “StockSOC_ProcessPoints” script: features (bands), 
-intercept, and regression coefficients.  The  intercept, and regression 
-coefficients variable must be entered as an array with commas separating 
-each value. 
+To run the "stockSOC\_PredictImage" script you need to enter the date of
+the Sentinel-2 image that you want to process. The resolution and cloud
+screening variables are the same as those described above for the
+"StockSOC\_ExtractPoints" script. In the next code block enter the path
+and filename for the ESRI Shapefiles. with the project boundary polygon
+and the path and filename for the output GeoTIFF image. In the next code
+block you will enter the following data that can be copied from the
+table output from the "StockSOC\_ProcessPoints" script: features
+(bands), intercept, and regression coefficients. The intercept, and
+regression coefficients variable must be entered as an array with commas
+separating each value. 
+
+You will also need to specify a scaling factor so the output image can
+be converted from a floating point data format to a 16-bit integer
+format. Converting to 16-bit integers makes it possible to download
+larger image using Google Earth Engine. It might take a few trials to
+find the best factor for your data set depending on the range of data
+values. When viewing the output image you will need to divide all pixels
+by the factor you specified to obtain the actual data values. If your
+study area is to large to allow downloading a 16-bit image it might be
+possible to process subsets of the study area or download to a Google
+Drive. Information about dealing with large images is available on the
+Google Earth Engine web site.
 
 When you run the script it can take several seconds to output the image. 
 When the script is running you can see the prediction equation that is 
@@ -248,10 +273,10 @@ red. A false color image is also displayed so you can verify that the
 area of interest (noted with a shaded polygon) is free of clouds with 
 appear as cyan colored blobs. The output image should appear in the path 
 specified near the top of the script. The image is a single-band 16-bit 
-integer image with SOC or stock values multiplied by 1000. The conversion 
-to integer was done to reduce the image size and therefore allow a larger 
-area to be processed. Google Earth Engine imposes strict output image 
-size constraints so it is possible that large areas will not be output. 
+integer image with SOC or stock values multiplied by the scaling factor. 
+The conversion to integer was done to reduce the image size and therefore 
+allow a larger area to be processed. Google Earth Engine imposes strict output 
+image size constraints so it is possible that large areas will not be output. 
 If that happens it will be necessary to subset the area being processed 
 by cutting the boundary file into multiple polygons and running each 
 polygon separately.  The resulting output images can then be mosaicked 
@@ -262,7 +287,7 @@ to view the full study area.
 If you cite this document we ask that you include the following
 information:
 
-Horning, N. 2022. User Guide - Using Google Earth Engine to Predict Soil
+Horning, N. 2024. User Guide - Using Google Earth Engine to Predict Soil
 Organic Carbon using Soil Sample Data & Sentinel-2 Imagery. Regen
 Network Development Inc. Available from
 https://github.com/regen-network/open-science/socMapping. (accessed on
