@@ -31,7 +31,7 @@ import geopandas as gpd
 import pandas as pd
 import pickle
 import math
-
+#ee.Authenticate()
 ee.Initialize()
 
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[1]:
+# In[ ]:
 
 
 # This script is used to process the data output form the “StockSOC_ExtractPoints” script. 
@@ -20,7 +20,7 @@
 # terms of the Apache License 2.0 License.  
 
 
-# In[2]:
+# In[ ]:
 
 
 import json
@@ -41,7 +41,7 @@ from numpy import mean
 from numpy import absolute
 
 
-# In[3]:
+# In[ ]:
 
 
 ### Enter input file from "StockSOC_ExtractPoints" and output CSV file paths and names ###
@@ -49,7 +49,7 @@ inPickle = ""
 outCSV = ""
 
 
-# In[4]:
+# In[ ]:
 
 
 ### Define the attribute labels from the input tabular data for SOC, BD, and the point name ###
@@ -59,7 +59,7 @@ BD = 'BD'   # Attribute name for bulk density
 PointLabel = 'MUESTRA'   # Attribute name for point labels
 
 
-# In[5]:
+# In[ ]:
 
 
 ### Specify the minimum and maximum number of features to use for testing best fit ###
@@ -67,14 +67,21 @@ min_feat=2
 max_feat=3
 
 
-# In[6]:
+# In[ ]:
 
 
 ### Process stock. To process SOC change to False ###
 processStock = True
 
 
-# In[7]:
+# In[ ]:
+
+
+### Maximum percentage of points with clouds. 
+max_cloud_percent = 0.2
+
+
+# In[ ]:
 
 
 # Function to calcualte normalized difference vegetation index
@@ -82,7 +89,7 @@ def calcNDVI(red, nir):
     return pd.DataFrame((nir - red)/(nir + red))
 
 
-# In[8]:
+# In[ ]:
 
 
 # Function to calcualte soil-adjusted total vegetation index
@@ -90,7 +97,7 @@ def calcSATVI(red, swir1, swir2):
     return pd.DataFrame(((swir1 -red)/(swir1 + red+0.5)) * 1.5 - (swir2/2))
 
 
-# In[9]:
+# In[ ]:
 
 
 # Function to calcualte normalized burn ratio 2
@@ -98,7 +105,7 @@ def calcNBR2(swir1, swir2):
     return pd.DataFrame((swir1 -swir2)/(swir1 + swir2))
 
 
-# In[10]:
+# In[ ]:
 
 
 # Function to calcualte soil organic carbon index
@@ -106,7 +113,7 @@ def calcSOCI(blue, green, red):
     return pd.DataFrame(blue/(red * green))
 
 
-# In[11]:
+# In[ ]:
 
 
 # Function to calcualte bare soil index
@@ -114,7 +121,7 @@ def calcBSI(blue, red, nir, swir1):
     return pd.DataFrame((swir1 + red) -(nir + blue) / (swir1 + red) + (nir + blue))
 
 
-# In[12]:
+# In[ ]:
 
 
 # Function to calcualte adjusted R2
@@ -123,7 +130,7 @@ def adjust_r2(r2, num_examples, num_features):
     return 1 - (1 - r2) * coef
 
 
-# In[13]:
+# In[ ]:
 
 
 # Open the tabular data that was output from StockSOC_ExtractPoints
@@ -131,21 +138,21 @@ with open(inPickle, 'rb') as f:
     pointsDFs = pickle.load(f)
 
 
-# In[14]:
+# In[ ]:
 
 
 # Initialize for tabular data to be output to CSV
 regResults = pd.DataFrame(columns = ['Date', 'R2', 'Adjusted_R2', 'RMSE', 'BestFeatures'])
 
 
-# In[15]:
+# In[ ]:
 
 
 # Iterate through the dictionary one date at a time to find the set of variables
 # that gives the highest R2 value
 for iteration, key in enumerate(pointsDFs):
     points = pointsDFs[key]
-    if (points['B3'].isna().sum() / len(points.index) < 0.2): # If under 20% of the values are NA (cloud masked)
+    if (points['B3'].isna().sum() / len(points.index) < max_cloud_percent): 
         print("Processing " + key + ": " + (str(len(pointsDFs.keys())-iteration-1)) + 
               " images to go      ", end = "\r")
         points.dropna(inplace=True)
@@ -223,7 +230,7 @@ for iteration, key in enumerate(pointsDFs):
                                        ignore_index = True)
 
 
-# In[16]:
+# In[ ]:
 
 
 # Output tabular data to CSV file

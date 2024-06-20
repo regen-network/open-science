@@ -29,7 +29,7 @@ import geopandas as gpd
 import pandas as pd
 import pickle
 import math
-
+#ee.Authenticate()
 ee.Initialize()
 
 
@@ -37,7 +37,7 @@ ee.Initialize()
 
 
 ### Enter Sentinel image date as numbers for year, month, day ###
-date = ee.Date.fromYMD(2021, 11, 11) # This is the date of the image you want to process  
+date = ee.Date.fromYMD(2021, 4, 15) # This is the date of the image you want to process  
 
 # Scale (resolution) in meters for the output image
 pixScale = 20
@@ -55,17 +55,24 @@ BUFFER = 50
 
 
 ### Enter input and output file paths and names ###
-boundaryShp = ""
-outImage = ""
+boundaryShp = "/home/nedhorning/RegenNetwork/Methodologies/ImpactAg/WilmotFarmLabTesting/Wilmot2023Boundary.shp"
+outImage = "/home/nedhorning/RegenNetwork/gee_notebooks/testGitHub/testImage.tif"
 
 
 # In[5]:
 
 
 ### Enter intercept, regression coefficients and image bands to use ###
-intercept = -0.0044025
-coef = [-6.76970035e-03, 6.17522235e-03, 1.19328667e+01]
-bands = ['B7', 'B8A', 'nbr2']
+intercept = 160.44103179
+coef = [-8.28360887e+01,  2.48191570e-02, -1.65602135e+02]
+bands = ['B12', 'B8', 'satvi']
+
+
+# In[ ]:
+
+
+### Multiply pixel values by this factor when converting to int16. 
+float_to_int16_factor = 10
 
 
 # In[6]:
@@ -368,8 +375,8 @@ Map
 # In[29]:
 
 
-# Multiply the output image by 10 to be able to convert to integer allowing larger areas to be downloaded
-outputImage = predImage.multiply(10).round().toInt16()
+# Multiply the output image by a factor to be able to convert to integer allowing larger areas to be downloaded
+outputImage = predImage.multiply(float_to_int16_factor).round().toInt16()
 
 
 # In[30]:
